@@ -68,7 +68,7 @@ namespace MediaServer.Plex.Services
         /// Collection of libraries from the server
         /// <param name="token">Cancellation token instance.</param>
         /// </summary>
-        public async Task<IEnumerable<Library>> GetAllLibrariesAsync(CancellationToken token)
+        public async Task<IEnumerable<ILibrary>> GetAllLibrariesAsync(CancellationToken token)
         {
             var requestUrl = Endpoint.Libraries.Description(_configuration.ServerAddress);
             var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
@@ -79,19 +79,11 @@ namespace MediaServer.Plex.Services
                 .ToHttpRequest();
             HttpResponse<BasePlexResponse<Libraries>> response = await _httpService
                 .RequestAsync<BasePlexResponse<Libraries>>(httpRequest, token);
-            List<Library> result = response
+            List<ILibrary> result = response
                 .Response
                 .MediaContainer
                 .Directory
-                .Select(d => new Library
-                {
-                    Id = d.Key,
-                    Poster = $"{_configuration.ServerAddress}{d.Art}?{_configuration.QueryStringPlexToken}",
-                    Thumbnail = $"{_configuration.ServerAddress}{d.Thumb}?{_configuration.QueryStringPlexToken}",
-                    Title = d.Title,
-                    Type = GetTypeFromString(d.Type),
-                    GetMoviesAsync = GetMoviesAsync(d.Key, d.Type, token)
-                })
+                .Select(d => GetLibrary(d, token))
                 .ToList();
 
             return result;
@@ -115,6 +107,29 @@ namespace MediaServer.Plex.Services
                 default:
                     return LibraryType.Other;
             }
+        }
+
+        private ILibrary GetLibrary(Directory dir, CancellationToken token)
+        {
+            var type = GetTypeFromString(dir.Type);
+            ILibrary library;
+            switch(type)
+            {
+                case LibraryType.Movie:
+                    library = new MovieLibrary
+                    {
+                        GetMoviesAsync = GetMoviesAsync(dir.Key, dir.Type, token)
+                    };
+                    break;
+                default:
+                    library = new OtherLibrary();
+                    break;
+            }
+            library.Id = dir.Key;
+            library.Poster = $"{_configuration.ServerAddress}{dir.Art}?{_configuration.QueryStringPlexToken}";
+            library.Thumbnail = $"{_configuration.ServerAddress}{dir.Thumb}?{_configuration.QueryStringPlexToken}";
+            library.Title = dir.Title;
+            return library;
         }
         
         /// <summary>

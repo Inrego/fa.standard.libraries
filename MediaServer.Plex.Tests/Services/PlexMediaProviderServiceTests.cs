@@ -250,7 +250,7 @@ namespace MediaServer.Plex.Tests.Services
                 });
             
             // Perform action
-            IEnumerable<Library> result = await instance.GetAllLibrariesAsync(CancellationToken.None);
+            IEnumerable<ILibrary> result = await instance.GetAllLibrariesAsync(CancellationToken.None);
             
             // Assert
             httpService
@@ -331,10 +331,10 @@ namespace MediaServer.Plex.Tests.Services
                 });
             
             // Perform action
-            IEnumerable<Library> result = await instance.GetAllLibrariesAsync(CancellationToken.None);
+            IEnumerable<ILibrary> result = await instance.GetAllLibrariesAsync(CancellationToken.None);
             
             // Assert
-            var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () => await result.First().GetMoviesAsync);
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () => await result.OfType<MovieLibrary>().First().GetMoviesAsync);
             
             Assert.Equal("libraryType", exception.ParamName);
         }
@@ -405,10 +405,10 @@ namespace MediaServer.Plex.Tests.Services
                 });
             
             // Perform action
-            IEnumerable<Library> result = await instance.GetAllLibrariesAsync(CancellationToken.None);
+            IEnumerable<ILibrary> result = await instance.GetAllLibrariesAsync(CancellationToken.None);
             
             // Assert
-            var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () => await result.First().GetMoviesAsync);
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(async () => await result.OfType<MovieLibrary>().First().GetMoviesAsync);
             
             Assert.Equal("libraryId", exception.ParamName);
         }
@@ -479,8 +479,8 @@ namespace MediaServer.Plex.Tests.Services
                 });
             
             // Perform action
-            IEnumerable<Library> result = await instance.GetAllLibrariesAsync(CancellationToken.None);
-            IEnumerable<Movie> movies = await result.First().GetMoviesAsync;
+            IEnumerable<ILibrary> result = await instance.GetAllLibrariesAsync(CancellationToken.None);
+            IEnumerable<Movie> movies = await result.OfType<MovieLibrary>().First().GetMoviesAsync;
             
             // Assert
             Assert.Empty(movies);
@@ -578,8 +578,8 @@ namespace MediaServer.Plex.Tests.Services
                 });
             
             // Perform action
-            IEnumerable<Library> result = await instance.GetAllLibrariesAsync(CancellationToken.None);
-            IEnumerable<Movie> movies = await result.First().GetMoviesAsync;
+            IEnumerable<ILibrary> result = await instance.GetAllLibrariesAsync(CancellationToken.None);
+            IEnumerable<Movie> movies = await result.OfType<MovieLibrary>().First().GetMoviesAsync;
             
             // Assert
             httpService
@@ -717,8 +717,8 @@ namespace MediaServer.Plex.Tests.Services
                 });
             
             // Perform action
-            IEnumerable<Library> result = await instance.GetAllLibrariesAsync(CancellationToken.None);
-            IEnumerable<Movie> movies = await result.First().GetMoviesAsync;
+            IEnumerable<ILibrary> result = await instance.GetAllLibrariesAsync(CancellationToken.None);
+            IEnumerable<Movie> movies = await result.OfType<MovieLibrary>().First().GetMoviesAsync;
             var actual = movies.First();
             
             // Assert

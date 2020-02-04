@@ -10,3 +10,4 @@ bin/
 Core\.Tests/coverage\.json
 
 *.user
+/.vs

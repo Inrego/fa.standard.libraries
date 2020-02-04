@@ -497,9 +497,9 @@ namespace MediaServer.Plex.Tests.Services
 
             mediaProvider
                 .GetAllLibrariesAsync(Arg.Any<CancellationToken>())
-                .Returns(info => new List<Library>
+                .Returns(info => new List<ILibrary>
                 {
-                    new Library()
+                    new OtherLibrary()
                 });
             
             // Perform

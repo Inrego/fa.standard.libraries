@@ -143,7 +143,7 @@ namespace MediaServer.Plex.Services
         /// Collection of libraries from the server
         /// <param name="token">Cancellation token instance.</param>
         /// </summary>
-        public async Task<IEnumerable<Library>> GetAllLibrariesAsync(CancellationToken token)
+        public async Task<IEnumerable<ILibrary>> GetAllLibrariesAsync(CancellationToken token)
         {
             var result = await _mediaProvider
                 .GetAllLibrariesAsync(token);

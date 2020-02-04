@@ -14,6 +14,6 @@ namespace MediaServer.Plex.Interfaces
         /// Collection of libraries from the server
         /// <param name="token">Cancellation token instance.</param>
         /// </summary>
-        Task<IEnumerable<Library>> GetAllLibrariesAsync(CancellationToken token);
+        Task<IEnumerable<ILibrary>> GetAllLibrariesAsync(CancellationToken token);
     }
 }
