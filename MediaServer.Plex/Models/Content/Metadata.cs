@@ -146,6 +146,16 @@ namespace MediaServer.Plex.Models.Content
         public string RatingImage { get; set; }
 
         /// <summary>
+        /// Parent key.
+        /// </summary>
+        public string ParentKey { get; set; }
+
+        /// <summary>
+        /// Parent title.
+        /// </summary>
+        public string ParentTitle { get; set; }
+
+        /// <summary>
         /// Collection of media content used for movies.
         /// </summary>
         public IEnumerable<Media> Media { get; set; } = new List<Media>();
