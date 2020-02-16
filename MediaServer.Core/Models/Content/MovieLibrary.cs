@@ -19,6 +19,6 @@ namespace FrostAura.Libraries.MediaServer.Core.Models.Content
         public string Poster { get; set; }
         public LibraryType Type { get; set; } = LibraryType.Movie;
 
-        public Task<IEnumerable<Movie>> GetMoviesAsync;
+        public Func<Task<IEnumerable<Movie>>> GetMoviesAsync;
     }
 }

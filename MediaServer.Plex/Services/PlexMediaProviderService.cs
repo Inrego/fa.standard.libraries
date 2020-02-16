@@ -118,7 +118,7 @@ namespace MediaServer.Plex.Services
                 case LibraryType.Movie:
                     library = new MovieLibrary
                     {
-                        GetMoviesAsync = GetMoviesAsync(dir.Key, dir.Type, token)
+                        GetMoviesAsync = () => GetMoviesAsync(dir.Key, dir.Type, token)
                     };
                     break;
                 default:
