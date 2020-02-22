@@ -118,13 +118,13 @@ namespace MediaServer.Plex.Services
                 case LibraryType.Movie:
                     library = new MovieLibrary
                     {
-                        GetMoviesAsync = (cancellationToken) => GetMoviesAsync(dir.Key, dir.Type, cancellationToken)
+                        GetMoviesAsync = () => GetMoviesAsync(dir.Key, dir.Type, token)
                     };
                     break;
                 case LibraryType.Music:
                     library = new MusicLibrary
                     {
-                        GetAlbumsAsync = (cancellationToken) => GetAlbumsAsync(dir.Key, dir.Type, cancellationToken)
+                        GetAlbumsAsync = () => GetAlbumsAsync(dir.Key, dir.Type, token)
                     };
                     break;
                 default:
@@ -199,9 +199,9 @@ namespace MediaServer.Plex.Services
             LibraryType type = GetTypeFromString(libraryType.ThrowIfNullOrWhitespace(nameof(libraryType)));
             var albums = new List<Album>();
 
-            if (type != LibraryType.Music) return albums;
+            if (type != LibraryType.Music) return movies;
 
-            var requestUrl = Endpoint.LibraryMusic.Description(_configuration.ServerAddress, libraryId.ThrowIfNullOrWhitespace(nameof(libraryId)), "9");
+            var requestUrl = Endpoint.LibraryMusic.Description(_configuration.ServerAddress, libraryId.ThrowIfNullOrWhitespace(nameof(libraryId)), 9);
             var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
             HttpRequest httpRequest = request
                 .WithAuthToken(_configuration)
@@ -209,43 +209,8 @@ namespace MediaServer.Plex.Services
                 .ToHttpRequest();
             HttpResponse<BasePlexResponse<MediaContainer>> response = await _httpService
                 .RequestAsync<BasePlexResponse<MediaContainer>>(httpRequest, token);
-            
+            var respStr = await response.ResponseMessage.Content.ReadAsStringAsync();
             albums = response
-                .Response
-                .MediaContainer
-                .Metadata
-                .Select(m =>
-                {
-                    return new Album
-                    {
-                        Artist = m.ParentTitle,
-                        Description = m.Summary,
-                        Poster = $"{_configuration.ServerAddress}{m.Art}?{_configuration.QueryStringPlexToken}",
-                        Thumbnail = m.Thumb,
-                        Title = m.Title,
-                        Year = m.Year,
-                        GetAlbumsAsync = (cancellationToken) => GetAlbumsSongsAsync(m.RatingKey, cancellationToken)
-                    };
-                })
-                .ToList();
-
-            return albums;
-        }
-
-        private async Task<IEnumerable<Song>> GetAlbumsSongsAsync(string albumId, CancellationToken token)
-        {
-            var songs = new List<Song>();
-
-            var requestUrl = Endpoint.LibraryMusic.Description(_configuration.ServerAddress, albumId.ThrowIfNullOrWhitespace(nameof(albumId)));
-            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-            HttpRequest httpRequest = request
-                .WithAuthToken(_configuration)
-                .AcceptJson()
-                .ToHttpRequest();
-            HttpResponse<BasePlexResponse<MediaContainer>> response = await _httpService
-                .RequestAsync<BasePlexResponse<MediaContainer>>(httpRequest, token);
-            
-            songs = response
                 .Response
                 .MediaContainer
                 .Metadata
@@ -253,22 +218,14 @@ namespace MediaServer.Plex.Services
                 {
                     Media media = m.Media.First();
 
-                    return new Song
+                    return new Album
                     {
-                        AudioChannels = media.AudioChannels,
-                        AudioCodec = media.AudioCodec,
-                        Bitrate = media.Bitrate,
-                        Container = media.Container,
-                        Description = m.Summary,
-                        Duration = m.Duration,
-                        StreamingUrl = $"{_configuration.ServerAddress}{media.Part.First().Key}?{_configuration.QueryStringPlexToken}",
-                        Thumbnail = $"{_configuration.ServerAddress}{m.Thumb}?{_configuration.QueryStringPlexToken}",
-                        Title = m.Title
+                        
                     };
                 })
                 .ToList();
 
-            return songs;
+            return movies;
         }
     }
 }
