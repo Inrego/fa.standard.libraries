@@ -118,13 +118,13 @@ namespace MediaServer.Plex.Services
                 case LibraryType.Movie:
                     library = new MovieLibrary
                     {
-                        GetMoviesAsync = () => GetMoviesAsync(dir.Key, dir.Type, token)
+                        GetMoviesAsync = (cancellationToken) => GetMoviesAsync(dir.Key, dir.Type, cancellationToken)
                     };
                     break;
                 case LibraryType.Music:
                     library = new MusicLibrary
                     {
-                        GetAlbumsAsync = () => GetAlbumsAsync(dir.Key, dir.Type, token)
+                        GetAlbumsAsync = (cancellationToken) => GetAlbumsAsync(dir.Key, dir.Type, cancellationToken)
                     };
                     break;
                 default:
@@ -199,9 +199,9 @@ namespace MediaServer.Plex.Services
             LibraryType type = GetTypeFromString(libraryType.ThrowIfNullOrWhitespace(nameof(libraryType)));
             var albums = new List<Album>();
 
-            if (type != LibraryType.Music) return movies;
+            if (type != LibraryType.Music) return albums;
 
-            var requestUrl = Endpoint.LibraryMusic.Description(_configuration.ServerAddress, libraryId.ThrowIfNullOrWhitespace(nameof(libraryId)), 9);
+            var requestUrl = Endpoint.LibraryMusic.Description(_configuration.ServerAddress, libraryId.ThrowIfNullOrWhitespace(nameof(libraryId)), "9");
             var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
             HttpRequest httpRequest = request
                 .WithAuthToken(_configuration)
@@ -225,7 +225,7 @@ namespace MediaServer.Plex.Services
                 })
                 .ToList();
 
-            return movies;
+            return albums;
         }
     }
 }

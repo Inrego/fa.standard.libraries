@@ -57,7 +57,7 @@ namespace MediaServer.Plex.Tests.Integration.Services
             await plexService.InitializeAsync(serverSelectorDelegate,CancellationToken.None);
             
             IEnumerable<ILibrary> libraries = await plexService.GetAllLibrariesAsync(CancellationToken.None);
-            IEnumerable<Movie> movies = await libraries.OfType<MovieLibrary>().First().GetMoviesAsync;
+            IEnumerable<Movie> movies = await libraries.OfType<MovieLibrary>().First().GetMoviesAsync(CancellationToken.None);
             
             // Assert
             Assert.True(libraries.Any());
