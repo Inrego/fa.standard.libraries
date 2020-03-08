@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -51,11 +50,11 @@ namespace MediaServer.Plex.Services
         /// Instance of Plex server settings provider.
         /// </summary>
         private IPlexServerSettingsProvider _serverSettingsProvider { get; }
-        
+
         /// <summary>
-        /// Instance of Plex server media provider.
+        /// Constructor for Plex headers.
         /// </summary>
-        private IPlexMediaProvider _mediaProvider { get; }
+        private IDictionary<string, string> _plexBasicHeaders { get; }
 
         /// <summary>
         /// Overloaded constructor to pass configuration.
@@ -69,7 +68,7 @@ namespace MediaServer.Plex.Services
             IHttpService httpService,
             IPlexAuthenticator authenticator,
             IPlexServerSettingsProvider serverSettingsProvider,
-            IPlexMediaProvider mediaProvider)
+            IHeaderConstructor<PlexBasicRequestHeaders> plexBasicHeadersConstructor)
         {
             Configuration = configuration
                 .ThrowIfNull(nameof(configuration))
@@ -80,8 +79,9 @@ namespace MediaServer.Plex.Services
                 .ThrowIfNull(nameof(authenticator));
             _serverSettingsProvider = serverSettingsProvider
                 .ThrowIfNull(nameof(serverSettingsProvider));
-            _mediaProvider = mediaProvider
-                .ThrowIfNull(nameof(mediaProvider));
+            _plexBasicHeaders = plexBasicHeadersConstructor
+                .ThrowIfNull(nameof(plexBasicHeadersConstructor))
+                .ConstructRequestHeaders(configuration.BasicPlexHeaders);
         }
 
         /// <summary>
@@ -108,9 +108,8 @@ namespace MediaServer.Plex.Services
                 plexBasicHeaderConstructorService,
                 new BasicAuthHeaderConstructorService(), plexConfig);
             IPlexServerSettingsProvider settingsProvider = new PlexServerPreferencesProviderService(httpService, plexBasicHeaderConstructorService, plexConfig);
-            IPlexMediaProvider mediaProvider = new PlexMediaProviderService(httpService, plexBasicHeaderConstructorService, plexConfig);
-            
-            return new PlexMediaService(plexConfig, httpService, authenticator, settingsProvider, mediaProvider);
+
+            return new PlexMediaService(plexConfig, httpService, authenticator, settingsProvider, plexBasicHeaderConstructorService);
         }
         
         /// <summary>
@@ -138,6 +137,120 @@ namespace MediaServer.Plex.Services
 
             return InitializationStatus.Ok;
         }
+        
+        public async Task<IEnumerable<Album>> GetAlbumsAsync(string libraryId, CancellationToken token)
+        {
+            var requestUrl = Endpoint.LibraryMusic.Description(Configuration.ServerAddress, libraryId.ThrowIfNullOrWhitespace(nameof(libraryId)), "9");
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            HttpRequest httpRequest = request
+                .WithAuthToken(Configuration)
+                .AcceptJson()
+                .ToHttpRequest();
+            HttpResponse<BasePlexResponse<MediaContainer>> response = await _httpService
+                .RequestAsync<BasePlexResponse<MediaContainer>>(httpRequest, token);
+
+            var albums = response
+                .Response
+                .MediaContainer
+                .Metadata
+                .Select(m =>
+                {
+                    return new Album
+                    {
+                        Artist = m.ParentTitle,
+                        Description = m.Summary,
+                        Poster = $"{Configuration.ServerAddress}{m.Art}?{Configuration.QueryStringPlexToken}",
+                        Thumbnail = $"{Configuration.ServerAddress}{m.Thumb}?{Configuration.QueryStringPlexToken}",
+                        Title = m.Title,
+                        Year = m.Year,
+                        GetSongsAsync = (cancellationToken) => GetAlbumSongsAsync(m.Key, cancellationToken)
+                    };
+                })
+                .ToList();
+
+            return albums;
+        }
+
+        public async Task<IEnumerable<Song>> GetAlbumSongsAsync(string albumId, CancellationToken token)
+        {
+            var requestUrl = Endpoint.LibraryMusic.Description(Configuration.ServerAddress, albumId.ThrowIfNullOrWhitespace(nameof(albumId)), "9");
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            HttpRequest httpRequest = request
+                .WithAuthToken(Configuration)
+                .AcceptJson()
+                .ToHttpRequest();
+            HttpResponse<BasePlexResponse<MediaContainer>> response = await _httpService
+                .RequestAsync<BasePlexResponse<MediaContainer>>(httpRequest, token);
+
+            var songs = response
+                .Response
+                .MediaContainer
+                .Metadata
+                .Select(m =>
+                {
+                    Media media = m.Media.First();
+
+                    return new Song
+                    {
+
+                    };
+                })
+                .ToList();
+
+            return songs;
+        }
+
+        /// <summary>
+        /// Get all movies async.
+        /// </summary>
+        /// <param name="libraryId">The ID of the library to get the content for.</param>
+        /// <param name="libraryType">The string type for the library.</param>
+        /// <param name="token">Cancellation token instance.</param>
+        /// <returns>Movies collection</returns>
+        private async Task<IEnumerable<Movie>> GetMoviesAsync(string libraryId, CancellationToken token)
+        {
+            var requestUrl = Endpoint.LibraryMovies.Description(Configuration.ServerAddress, libraryId.ThrowIfNullOrWhitespace(nameof(libraryId)));
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            HttpRequest httpRequest = request
+                .WithAuthToken(Configuration)
+                .AcceptJson()
+                .ToHttpRequest();
+            HttpResponse<BasePlexResponse<MediaContainer>> response = await _httpService
+                .RequestAsync<BasePlexResponse<MediaContainer>>(httpRequest, token);
+
+            var movies = response
+                .Response
+                .MediaContainer
+                .Metadata
+                .Select(m =>
+                {
+                    Media media = m.Media.First();
+
+                    return new Movie
+                    {
+                        AudioChannels = media.AudioChannels,
+                        AudioCodec = media.AudioCodec,
+                        Bitrate = media.Bitrate,
+                        Container = media.Container,
+                        Description = m.Summary,
+                        Duration = m.Duration,
+                        Height = media.Height,
+                        Width = media.Width,
+                        Poster = $"{Configuration.ServerAddress}{m.Art}?{Configuration.QueryStringPlexToken}",
+                        Rating = m.Rating,
+                        StreamingUrl = $"{Configuration.ServerAddress}{media.Part.First().Key}?{Configuration.QueryStringPlexToken}",
+                        Studio = m.Studio,
+                        Thumbnail = $"{Configuration.ServerAddress}{m.Thumb}?{Configuration.QueryStringPlexToken}",
+                        Title = m.Title,
+                        VideoCodec = media.VideoCodec,
+                        ViewCount = m.ViewCount,
+                        Year = m.Year
+                    };
+                })
+                .ToList();
+
+            return movies;
+        }
 
         /// <summary>
         /// Collection of libraries from the server
@@ -145,10 +258,72 @@ namespace MediaServer.Plex.Services
         /// </summary>
         public async Task<IEnumerable<ILibrary>> GetAllLibrariesAsync(CancellationToken token)
         {
-            var result = await _mediaProvider
-                .GetAllLibrariesAsync(token);
+            var requestUrl = Endpoint.Libraries.Description(Configuration.ServerAddress);
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            HttpRequest httpRequest = request
+                .WithAuthToken(Configuration)
+                .AddRequestHeaders(_plexBasicHeaders)
+                .AcceptJson()
+                .ToHttpRequest();
+            HttpResponse<BasePlexResponse<Libraries>> response = await _httpService
+                .RequestAsync<BasePlexResponse<Libraries>>(httpRequest, token);
+            List<ILibrary> result = response
+                .Response
+                .MediaContainer
+                .Directory
+                .Select(d => GetLibrary(d, token))
+                .ToList();
 
             return result;
+        }
+
+        /// <summary>
+        /// Convert the string of library type to an enum value.
+        /// </summary>
+        /// <param name="str">String library type.</param>
+        /// <returns>Enum library type.</returns>
+        private LibraryType GetTypeFromString(string str)
+        {
+            switch (str)
+            {
+                case "movie":
+                    return LibraryType.Movie;
+                case "show":
+                    return LibraryType.TvSeries;
+                case "artist":
+                    return LibraryType.Music;
+                default:
+                    return LibraryType.Other;
+            }
+        }
+
+        private ILibrary GetLibrary(Directory dir, CancellationToken token)
+        {
+            var type = GetTypeFromString(dir.Type);
+            ILibrary library;
+            switch (type)
+            {
+                case LibraryType.Movie:
+                    library = new MovieLibrary
+                    {
+                        GetMoviesAsync = (cancellationToken) => GetMoviesAsync(dir.Key, cancellationToken)
+                    };
+                    break;
+                case LibraryType.Music:
+                    library = new MusicLibrary
+                    {
+                        GetAlbumsAsync = (cancellationToken) => GetAlbumsAsync(dir.Key, cancellationToken)
+                    };
+                    break;
+                default:
+                    library = new OtherLibrary();
+                    break;
+            }
+            library.Id = dir.Key;
+            library.Poster = $"{Configuration.ServerAddress}{dir.Art}?{Configuration.QueryStringPlexToken}";
+            library.Thumbnail = $"{Configuration.ServerAddress}{dir.Thumb}?{Configuration.QueryStringPlexToken}";
+            library.Title = dir.Title;
+            return library;
         }
     }
 }

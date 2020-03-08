@@ -27,11 +27,10 @@ namespace MediaServer.Plex.Tests.Services
             var httpService = Substitute.For<IHttpService>();
             var authenticator = Substitute.For<IPlexAuthenticator>();
             var settingsProvider = Substitute.For<IPlexServerSettingsProvider>();
-            var mediaProvider = Substitute.For<IPlexMediaProvider>();
             
             // Perform
             var exception = Assert.Throws<ArgumentNullException>(() =>
-                new PlexMediaService(config, httpService, authenticator, settingsProvider, mediaProvider));
+                new PlexMediaService(config, httpService, authenticator, settingsProvider, ));
 
             // Assert
             Assert.Equal("configuration", exception.ParamName);

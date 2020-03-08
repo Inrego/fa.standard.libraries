@@ -38,6 +38,6 @@ namespace FrostAura.Libraries.MediaServer.Core.Models.Content
         /// </summary>
         public string Poster { get; set; }
 
-        public Func<CancellationToken, Task<IEnumerable<Song>>> GetAlbumsAsync;
+        public Func<CancellationToken, Task<IEnumerable<Song>>> GetSongsAsync;
     }
 }
