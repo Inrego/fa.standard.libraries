@@ -9,6 +9,11 @@ namespace FrostAura.Libraries.MediaServer.Core.Models.Content
     public class Album
     {
         /// <summary>
+        /// Album id.
+        /// </summary>
+        public string Id { get;set;}
+
+        /// <summary>
         /// Album title.
         /// </summary>
         public string Title { get; set; }

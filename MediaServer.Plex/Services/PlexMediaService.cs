@@ -157,6 +157,7 @@ namespace MediaServer.Plex.Services
                 {
                     return new Album
                     {
+                        Id = m.Key,
                         Artist = m.ParentTitle,
                         Description = m.Summary,
                         Poster = $"{Configuration.ServerAddress}{m.Art}?{Configuration.QueryStringPlexToken}",
@@ -192,7 +193,7 @@ namespace MediaServer.Plex.Services
 
                     return new Song
                     {
-
+                        Id = m.Key
                     };
                 })
                 .ToList();
@@ -228,6 +229,7 @@ namespace MediaServer.Plex.Services
 
                     return new Movie
                     {
+                        Id = m.Key,
                         AudioChannels = media.AudioChannels,
                         AudioCodec = media.AudioCodec,
                         Bitrate = media.Bitrate,
