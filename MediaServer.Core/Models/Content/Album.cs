@@ -19,6 +19,11 @@ namespace FrostAura.Libraries.MediaServer.Core.Models.Content
         public string Title { get; set; }
 
         /// <summary>
+        /// Album sorting title.
+        /// </summary>
+        public string SortingTitle { get; set; }
+
+        /// <summary>
         /// Album artist.
         /// </summary>
         public string Artist { get; set; }

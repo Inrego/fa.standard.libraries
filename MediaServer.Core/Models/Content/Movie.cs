@@ -19,6 +19,11 @@ namespace FrostAura.Libraries.MediaServer.Core.Models.Content
         public string Title { get; set; }
 
         /// <summary>
+        /// Movie sorting title.
+        /// </summary>
+        public string SortingTitle { get; set; }
+
+        /// <summary>
         /// Movie studio.
         /// </summary>
         public string Studio { get; set; }

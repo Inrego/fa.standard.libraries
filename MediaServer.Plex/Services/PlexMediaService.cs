@@ -163,6 +163,7 @@ namespace MediaServer.Plex.Services
                         Poster = $"{Configuration.ServerAddress}{m.Art}?{Configuration.QueryStringPlexToken}",
                         Thumbnail = $"{Configuration.ServerAddress}{m.Thumb}?{Configuration.QueryStringPlexToken}",
                         Title = m.Title,
+                        SortingTitle = m.TitleSort,
                         Year = m.Year,
                         GetSongsAsync = (cancellationToken) => GetAlbumSongsAsync(m.Key, cancellationToken)
                     };
@@ -244,6 +245,7 @@ namespace MediaServer.Plex.Services
                         Studio = m.Studio,
                         Thumbnail = $"{Configuration.ServerAddress}{m.Thumb}?{Configuration.QueryStringPlexToken}",
                         Title = m.Title,
+                        SortingTitle = m.TitleSort,
                         VideoCodec = media.VideoCodec,
                         ViewCount = m.ViewCount,
                         Year = m.Year

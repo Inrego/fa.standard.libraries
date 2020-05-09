@@ -36,6 +36,11 @@ namespace MediaServer.Plex.Models.Content
         public string Title { get; set; }
 
         /// <summary>
+        /// Sorting title of the media content.
+        /// </summary>
+        public string TitleSort { get; set; }
+
+        /// <summary>
         /// The content rating of the media content.
         /// </summary>
         public string ContentRating { get; set; }
