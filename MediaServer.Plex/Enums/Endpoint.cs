@@ -24,7 +24,7 @@ namespace MediaServer.Plex.Enums
         [Description("{0}/library/sections/{1}/all?type={2}")]
         LibraryMusic,
         
-        [Description("{0}/library/metadata/{1}/children")]
+        [Description("{0}{1}")]
         Children,
 
         [Description("https://plex.tv/devices.xml")]

@@ -175,7 +175,7 @@ namespace MediaServer.Plex.Services
 
         public async Task<IEnumerable<Song>> GetAlbumSongsAsync(string albumId, CancellationToken token)
         {
-            var requestUrl = Endpoint.LibraryMusic.Description(Configuration.ServerAddress, albumId.ThrowIfNullOrWhitespace(nameof(albumId)), "9");
+            var requestUrl = Endpoint.Children.Description(Configuration.ServerAddress, albumId.ThrowIfNullOrWhitespace(nameof(albumId)));
             var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
             HttpRequest httpRequest = request
                 .WithAuthToken(Configuration)
@@ -191,10 +191,22 @@ namespace MediaServer.Plex.Services
                 .Select(m =>
                 {
                     Media media = m.Media.First();
-
+                    var file = media.Part.First();
                     return new Song
                     {
-                        Id = m.Key
+                        Id = m.Key,
+                        Title = m.Title,
+                        SortingTitle = m.TitleSort,
+                        AudioChannels = media.AudioChannels,
+                        AudioCodec = media.AudioCodec,
+                        Bitrate = media.Bitrate,
+                        Size = file.Size,
+                        Container = media.Container,
+                        Description = m.Summary,
+                        Duration = m.Duration,
+                        StreamingUrl = file.Key,
+                        Thumbnail = $"{Configuration.ServerAddress}{m.Thumb}?{Configuration.QueryStringPlexToken}",
+                        FileName = System.IO.Path.GetFileName(file.File)
                     };
                 })
                 .ToList();

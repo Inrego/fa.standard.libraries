@@ -17,6 +17,16 @@ namespace FrostAura.Libraries.MediaServer.Core.Models.Content
         public string Title { get; set; }
 
         /// <summary>
+        /// Song file name.
+        /// </summary>
+        public string FileName { get; set; }
+
+        /// <summary>
+        /// Song file size.
+        /// </summary>
+        public long Size { get; set; }
+
+        /// <summary>
         /// Song sorting title.
         /// </summary>
         public string SortingTitle { get; set; }
