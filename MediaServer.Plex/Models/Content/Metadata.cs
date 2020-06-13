@@ -189,5 +189,10 @@ namespace MediaServer.Plex.Models.Content
         /// Collection of media roles | cast.
         /// </summary>
         public IEnumerable<TagWithValue> Role { get; set; } = new List<TagWithValue>();
+
+        /// <summary>
+        /// Collection of media collections.
+        /// </summary>
+        public IEnumerable<TagWithValue> Collection { get; set; } = new List<TagWithValue>();
     }
 }

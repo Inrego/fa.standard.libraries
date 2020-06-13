@@ -21,5 +21,6 @@ namespace FrostAura.Libraries.MediaServer.Core.Models.Content
         public LibraryType Type { get; set; } = LibraryType.Music;
 
         public Func<CancellationToken, Task<IEnumerable<Album>>> GetAlbumsAsync;
+        public Func<CancellationToken, Task<IEnumerable<Collection>>> GetCollectionsAsync;
     }
 }

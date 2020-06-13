@@ -21,5 +21,6 @@ namespace FrostAura.Libraries.MediaServer.Core.Models.Content
         public LibraryType Type { get; set; } = LibraryType.Movie;
 
         public Func<CancellationToken, Task<IEnumerable<Movie>>> GetMoviesAsync;
+        public Func<CancellationToken, Task<IEnumerable<Collection>>> GetCollectionsAsync;
     }
 }

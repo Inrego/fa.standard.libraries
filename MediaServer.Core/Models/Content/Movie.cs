@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace FrostAura.Libraries.MediaServer.Core.Models.Content
 {
@@ -102,5 +103,11 @@ namespace FrostAura.Libraries.MediaServer.Core.Models.Content
         /// Media file container.
         /// </summary>
         public string Container { get; set; }
+
+
+        /// <summary>
+        /// Collections that this movie is a part of.
+        /// </summary>
+        public IEnumerable<string> Collections { get; set; }
     }
 }

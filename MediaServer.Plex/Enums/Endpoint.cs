@@ -18,12 +18,18 @@ namespace MediaServer.Plex.Enums
         [Description("{0}/library/sections")]
         Libraries,
         
-        [Description("{0}/library/sections/{1}/all")]
+        [Description("{0}/library/sections/{1}/all?includeCollections=1")]
         LibraryMovies,
         
-        [Description("{0}/library/sections/{1}/all?type={2}")]
+        [Description("{0}/library/sections/{1}/all?type={2}&includeCollections=1")]
         LibraryMusic,
-        
+
+        [Description("{0}/library/sections/{1}/collections")]
+        LibraryCollections,
+
+        [Description("{0}/library/sections/{1}/collection")]
+        LibraryMusicCollections,
+
         [Description("{0}{1}")]
         Children,
 

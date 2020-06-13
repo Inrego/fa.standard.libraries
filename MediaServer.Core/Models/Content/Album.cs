@@ -44,9 +44,14 @@ namespace FrostAura.Libraries.MediaServer.Core.Models.Content
         public string Thumbnail { get; set; }
 
         /// <summary>
-        /// Movie poster full URL.
+        /// Album poster full URL.
         /// </summary>
         public string Poster { get; set; }
+
+        /// <summary>
+        /// Collections that this album is a part of.
+        /// </summary>
+        public IEnumerable<string> Collections { get; set; }
 
         public Func<CancellationToken, Task<IEnumerable<Song>>> GetSongsAsync;
     }

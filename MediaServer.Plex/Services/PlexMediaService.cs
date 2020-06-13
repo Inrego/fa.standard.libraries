@@ -165,7 +165,8 @@ namespace MediaServer.Plex.Services
                         Title = m.Title,
                         SortingTitle = m.TitleSort,
                         Year = m.Year,
-                        GetSongsAsync = (cancellationToken) => GetAlbumSongsAsync(m.Key, cancellationToken)
+                        GetSongsAsync = (cancellationToken) => GetAlbumSongsAsync(m.Key, cancellationToken),
+                        Collections = m.Collection.Select(x => x.Tag)
                     };
                 })
                 .ToList();
@@ -218,10 +219,9 @@ namespace MediaServer.Plex.Services
         /// Get all movies async.
         /// </summary>
         /// <param name="libraryId">The ID of the library to get the content for.</param>
-        /// <param name="libraryType">The string type for the library.</param>
         /// <param name="token">Cancellation token instance.</param>
         /// <returns>Movies collection</returns>
-        private async Task<IEnumerable<Movie>> GetMoviesAsync(string libraryId, CancellationToken token)
+        public async Task<IEnumerable<Movie>> GetMoviesAsync(string libraryId, CancellationToken token)
         {
             var requestUrl = Endpoint.LibraryMovies.Description(Configuration.ServerAddress, libraryId.ThrowIfNullOrWhitespace(nameof(libraryId)));
             var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
@@ -260,12 +260,84 @@ namespace MediaServer.Plex.Services
                         SortingTitle = m.TitleSort,
                         VideoCodec = media.VideoCodec,
                         ViewCount = m.ViewCount,
-                        Year = m.Year
+                        Year = m.Year,
+                        Collections = m.Collection.Select(x => x.Tag)
                     };
                 })
                 .ToList();
 
             return movies;
+        }
+
+        /// <summary>
+        /// Get all collections async.
+        /// </summary>
+        /// <param name="libraryId">The ID of the library to get the content for.</param>
+        /// <param name="token">Cancellation token instance.</param>
+        /// <returns>Movies collection</returns>
+        public async Task<IEnumerable<Collection>> GetCollectionsAsync(string libraryId, CancellationToken token)
+        {
+            var requestUrl = Endpoint.LibraryCollections.Description(Configuration.ServerAddress, libraryId.ThrowIfNullOrWhitespace(nameof(libraryId)));
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            HttpRequest httpRequest = request
+                .WithAuthToken(Configuration)
+                .AcceptJson()
+                .ToHttpRequest();
+            HttpResponse<BasePlexResponse<MediaContainer>> response = await _httpService
+                .RequestAsync<BasePlexResponse<MediaContainer>>(httpRequest, token);
+
+            var collections = response
+                .Response
+                .MediaContainer
+                .Metadata
+                .Select(m =>
+                {
+                    return new Collection
+                    {
+                        Id = m.Key,
+                        Description = m.Summary,
+                        Thumbnail = $"{Configuration.ServerAddress}{m.Thumb}?{Configuration.QueryStringPlexToken}",
+                        Title = m.Title,
+                        SortingTitle = m.TitleSort,
+                    };
+                })
+                .ToList();
+
+            return collections;
+        }
+
+        /// <summary>
+        /// Get all collections async.
+        /// </summary>
+        /// <param name="libraryId">The ID of the library to get the content for.</param>
+        /// <param name="token">Cancellation token instance.</param>
+        /// <returns>Movies collection</returns>
+        public async Task<IEnumerable<Collection>> GetCollectionsSimpleAsync(string libraryId, CancellationToken token)
+        {
+            var requestUrl = Endpoint.LibraryMusicCollections.Description(Configuration.ServerAddress, libraryId.ThrowIfNullOrWhitespace(nameof(libraryId)));
+            var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            HttpRequest httpRequest = request
+                .WithAuthToken(Configuration)
+                .AcceptJson()
+                .ToHttpRequest();
+            HttpResponse<BasePlexResponse<MediaContainer>> response = await _httpService
+                .RequestAsync<BasePlexResponse<MediaContainer>>(httpRequest, token);
+
+            var collections = response
+                .Response
+                .MediaContainer
+                .Directory
+                .Select(m =>
+                {
+                    return new Collection
+                    {
+                        Id = m.Key,
+                        Title = m.Title
+                    };
+                })
+                .ToList();
+
+            return collections;
         }
 
         /// <summary>
@@ -322,17 +394,22 @@ namespace MediaServer.Plex.Services
                 case LibraryType.Movie:
                     library = new MovieLibrary
                     {
-                        GetMoviesAsync = (cancellationToken) => GetMoviesAsync(dir.Key, cancellationToken)
+                        GetMoviesAsync = (cancellationToken) => GetMoviesAsync(dir.Key, cancellationToken),
+                        GetCollectionsAsync = (cancellationToken) => GetCollectionsAsync(dir.Key, cancellationToken)
                     };
                     break;
                 case LibraryType.Music:
                     library = new MusicLibrary
                     {
-                        GetAlbumsAsync = (cancellationToken) => GetAlbumsAsync(dir.Key, cancellationToken)
+                        GetAlbumsAsync = (cancellationToken) => GetAlbumsAsync(dir.Key, cancellationToken),
+                        GetCollectionsAsync = (cancellationToken) => GetCollectionsSimpleAsync(dir.Key, cancellationToken)
                     };
                     break;
                 default:
-                    library = new OtherLibrary();
+                    library = new OtherLibrary
+                    {
+                        GetCollectionsAsync = (cancellationToken) => GetCollectionsAsync(dir.Key, cancellationToken)
+                    };
                     break;
             }
             library.Id = dir.Key;

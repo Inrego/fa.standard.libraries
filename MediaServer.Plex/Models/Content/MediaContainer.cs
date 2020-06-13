@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using FrostAura.Libraries.MediaServer.Plex.Models.Content;
 
 namespace MediaServer.Plex.Models.Content
 {
@@ -83,5 +84,10 @@ namespace MediaServer.Plex.Models.Content
         /// Collection of media content in the media section.
         /// </summary>
         public IEnumerable<Metadata> Metadata { get; set; } = new List<Metadata>();
+
+        /// <summary>
+        /// Collection of collection directories in the media section.
+        /// </summary>
+        public IEnumerable<CollectionDirectory> Directory { get; set; } = new List<CollectionDirectory>();
     }
 }
